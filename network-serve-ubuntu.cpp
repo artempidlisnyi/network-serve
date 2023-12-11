@@ -5,29 +5,25 @@
 
 struct Args
 {
-    bool watch = false;     // Watch for changes (default: false)
-    int number = -1;        // Number of records to display (default: -1, all)
-    bool establish = false; // Filter for established connections (default: false)
+    bool watch = false;
+    int number = -1;
     std::string filter;
 };
 
 Args parse_args(int argc, char *argv[])
 {
-    Args args; // Initialize arguments structure
+    Args args;
 
-    // Iterate through arguments
     for (int i = 1; i < argc; ++i)
     {
-        std::string arg(argv[i]); // Get current argument
+        std::string arg(argv[i]);
 
-        // Check for watch flag
         if (arg == "-w")
         {
             args.watch = true;
             continue;
         }
 
-        // Check for number argument
         if (arg == "-n")
         {
             if (i + 1 < argc)
@@ -42,19 +38,12 @@ Args parse_args(int argc, char *argv[])
             continue;
         }
 
-        // Check for establish flag
-        if (arg == "-e")
-        {
-            args.establish = true;
-            continue;
-        }
-
         if (arg == "-f")
         {
             if (i + 1 < argc)
             {
                 args.filter = argv[i + 1];
-                ++i; // Skip the next argument after -f
+                ++i;
             }
             else
             {
@@ -64,18 +53,18 @@ Args parse_args(int argc, char *argv[])
             continue;
         }
 
-        // Handle unrecognized arguments
         std::cerr << "Unrecognized argument: " << arg << std::endl;
     }
 
     return args;
 }
 
-void printTcpConnections(int n, bool established, std::string filter)
+void printTcpConnections(int n, std::string filter)
 {
-    // Execute netstat command to get TCP connections information
+
     std::string command = "netstat -t -n -p --numeric-ports";
-    if(!filter.empty()) {
+    if (!filter.empty())
+    {
         command += "| grep " + filter;
     }
     FILE *pipe = popen(command.c_str(), "r");
@@ -92,13 +81,11 @@ void printTcpConnections(int n, bool established, std::string filter)
     int i = 0;
     while (fgets(buffer, sizeof(buffer), pipe) != nullptr)
     {
-        if ((buffer, "ESTABLISHED") != nullptr || established)
-        {
-            std::cout << buffer;
-            if (i > n && n != -1)
-                break;
-            i++;
-        }
+
+        std::cout << buffer;
+        if (i > n && n != -1)
+            break;
+        i++;
     }
 
     pclose(pipe);
@@ -106,7 +93,7 @@ void printTcpConnections(int n, bool established, std::string filter)
 
 int main(int argc, char *argv[])
 {
-    bool watch = false; // Default refresh rate in seconds
+    bool watch = false;
 
     Args args = parse_args(argc, argv);
     std::cout << "args - " << args.number;
@@ -114,14 +101,14 @@ int main(int argc, char *argv[])
 
     while (show)
     {
-        printTcpConnections(args.number, args.establish, args.filter);
+        printTcpConnections(args.number, args.filter);
         if (!args.watch)
         {
             show = false;
         }
         else
         {
-            sleep(2); // Wait for 2 seconds and refresh output
+            sleep(2);
             system("clear");
         }
     }
